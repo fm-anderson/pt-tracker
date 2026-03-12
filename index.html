@@ -23,8 +23,18 @@
       <template id="runner-template">
         <div class="runner-row">
           <div class="runner-identity" role="button" aria-label="Runner identity and lap counter">
-            <input type="text" class="runner-name" placeholder="Runner Name" />
-            <span class="lap-counter">Laps: 0</span>
+            <div class="identity-setup">
+              <input type="text" class="runner-name" placeholder="Name" />
+              <div class="stats-entry">
+                <input type="number" class="pushups-input" placeholder="PU" min="0" />
+                <input type="number" class="situps-input" placeholder="SU" min="0" />
+              </div>
+            </div>
+            <div class="identity-active" style="display: none;">
+              <span class="display-name"></span>
+              <span class="display-stats"></span>
+              <span class="lap-counter">Laps: 0</span>
+            </div>
           </div>
           <div class="runner-actions">
             <button class="lock-btn">Lock</button>
