@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pt_tracker</title>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <div id="global-timer">00:00.00</div>
+        <div class="controls">
+          <button id="start-run" disabled>Start Run</button>
+          <button id="add-runner">Add Runner</button>
+        </div>
+      </header>
+
+      <main id="runner-rows">
+        <!-- runners will be injected here -->
+      </main>
+
+      <template id="runner-template">
+        <div class="runner-row">
+          <div class="runner-identity" role="button" aria-label="Runner identity and lap counter">
+            <input type="text" class="runner-name" placeholder="Runner Name" />
+            <span class="lap-counter">Laps: 0</span>
+          </div>
+          <div class="runner-actions">
+            <button class="lock-btn">Lock</button>
+            <button class="finish-btn" disabled>Finish</button>
+            <button class="remove-btn">×</button>
+          </div>
+          <div class="result-display">--:--.--</div>
+        </div>
+      </template>
+
+      <footer>
+        <button id="reset-all">Reset All</button>
+      </footer>
+
+      <dialog id="reset-dialog">
+        <form method="dialog">
+          <p>Are you sure you want to reset all data? This cannot be undone.</p>
+          <div class="dialog-actions">
+            <button value="cancel">Cancel</button>
+            <button id="confirm-reset" value="default">Yes, Reset All</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
