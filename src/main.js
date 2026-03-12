@@ -1,5 +1,5 @@
 import "./style.css";
-import { formatTime } from "./utils.js";
+import { formatTime, storage } from "./utils.js";
 import { createRunnerRow } from "./runnerRow.js";
 
 const runnerContainer = document.querySelector("#runner-rows");
@@ -11,6 +11,8 @@ const resetDialog = document.querySelector("#reset-dialog");
 const confirmResetBtn = document.querySelector("#confirm-reset");
 
 const MAX_RUNNERS = 6;
+const STORAGE_KEY = "pt_tracker_state";
+
 let runnersConfig = [
   {
     id: 1,
@@ -26,6 +28,37 @@ let runnersConfig = [
 let startTime = null;
 let timerInterval = null;
 let isRunning = false;
+let lastElapsedTime = 0;
+
+function saveState() {
+  const currentElapsed = isRunning
+    ? performance.now() - startTime
+    : lastElapsedTime;
+  const state = {
+    runnersConfig,
+    isRunning,
+    lastElapsedTime: currentElapsed,
+    startTimestamp: isRunning ? Date.now() - currentElapsed : null,
+  };
+  storage.set(STORAGE_KEY, state);
+}
+
+function loadState() {
+  const savedState = storage.get(STORAGE_KEY);
+  if (savedState) {
+    runnersConfig = savedState.runnersConfig;
+    isRunning = savedState.isRunning;
+    lastElapsedTime = savedState.lastElapsedTime || 0;
+
+    if (isRunning && savedState.startTimestamp) {
+      const elapsedSoFar = Date.now() - savedState.startTimestamp;
+      startTime = performance.now() - elapsedSoFar;
+      resumeTimer();
+    } else {
+      globalTimerDisplay.textContent = formatTime(lastElapsedTime);
+    }
+  }
+}
 
 function renderRunners() {
   runnerContainer.innerHTML = "";
@@ -34,45 +67,67 @@ function renderRunners() {
       isRunning,
       startTime,
       onUpdate: () => {
+        saveState();
         renderRunners();
         updateStartButtonState();
       },
       onFinish: () => {
+        lastElapsedTime = performance.now() - startTime;
+        saveState();
         renderRunners();
         checkAllFinished();
       },
       onRemove: (id) => {
         runnersConfig = runnersConfig.filter((r) => r.id !== id);
+        saveState();
         renderRunners();
         updateStartButtonState();
       },
     });
     runnerContainer.appendChild(runnerElement);
   });
-  addRunnerBtn.disabled = runnersConfig.length >= MAX_RUNNERS || isRunning;
+  addRunnerBtn.disabled =
+    runnersConfig.length >= MAX_RUNNERS || isRunning || hasAnyFinished();
+}
+
+function hasAnyFinished() {
+  return runnersConfig.some((r) => r.finished);
 }
 
 function updateStartButtonState() {
   const anyLocked = runnersConfig.some((r) => r.locked);
-  startRunBtn.disabled = isRunning || !anyLocked;
+  startRunBtn.disabled = isRunning || !anyLocked || hasAnyFinished();
 }
 
 function checkAllFinished() {
   const lockedRunners = runnersConfig.filter((r) => r.locked);
   if (lockedRunners.length > 0 && lockedRunners.every((r) => r.finished)) {
-    clearInterval(timerInterval);
-    isRunning = false;
-    updateStartButtonState();
+    stopTimer();
     renderRunners();
   }
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  isRunning = false;
+  saveState();
+  updateStartButtonState();
+}
+
+function resumeTimer() {
+  timerInterval = setInterval(() => {
+    const elapsed = performance.now() - startTime;
+    globalTimerDisplay.textContent = formatTime(elapsed);
+    lastElapsedTime = elapsed;
+  }, 10);
 }
 
 function startTimer() {
   isRunning = true;
   startTime = performance.now();
-  timerInterval = setInterval(() => {
-    globalTimerDisplay.textContent = formatTime(performance.now() - startTime);
-  }, 10);
+  lastElapsedTime = 0;
+  saveState();
+  resumeTimer();
   renderRunners();
   updateStartButtonState();
 }
@@ -93,16 +148,19 @@ addRunnerBtn.addEventListener("click", () => {
       laps: 0,
       finalTime: null,
     });
+    saveState();
     renderRunners();
   }
 });
 
 startRunBtn.addEventListener("click", startTimer);
 resetAllBtn.addEventListener("click", () => resetDialog.showModal());
+
 confirmResetBtn.addEventListener("click", () => {
   clearInterval(timerInterval);
   isRunning = false;
   startTime = null;
+  lastElapsedTime = 0;
   globalTimerDisplay.textContent = "00:00.00";
   runnersConfig = [
     {
@@ -116,10 +174,12 @@ confirmResetBtn.addEventListener("click", () => {
       finalTime: null,
     },
   ];
+  storage.remove(STORAGE_KEY);
   renderRunners();
   updateStartButtonState();
 });
 
 // init
+loadState();
 renderRunners();
 updateStartButtonState();

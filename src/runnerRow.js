@@ -81,8 +81,9 @@ export function createRunnerRow(runner, options) {
     if (isRunning && runner.locked && !runner.finished) {
       runner.laps++;
       lapDisplay.textContent = `Laps: ${runner.laps}`;
-      identity.classList.add("pulse");
-      setTimeout(() => identity.classList.remove("pulse"), 200);
+      identity.classList.add('pulse');
+      setTimeout(() => identity.classList.remove('pulse'), 200);
+      onUpdate();
     }
   });
 
