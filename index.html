@@ -9,6 +9,9 @@
   <body>
     <div id="app">
       <header>
+        <div class="session-info">
+          <input type="text" id="session-name" placeholder="Session Name (e.g., Morning Run)" />
+        </div>
         <div id="global-timer">00:00.00</div>
         <div class="controls">
           <button id="start-run" disabled>Start Run</button>
@@ -19,6 +22,10 @@
       <main id="runner-rows">
         <!-- runners will be injected here -->
       </main>
+
+      <div id="archive-section" style="display: none; padding: 1rem; text-align: center;">
+        <button id="archive-session">Archive & Start New Session</button>
+      </div>
 
       <template id="runner-template">
         <div class="runner-row">
@@ -46,8 +53,22 @@
       </template>
 
       <footer>
-        <button id="reset-all">Reset All</button>
+        <button id="view-history">View History</button>
+        <button id="reset-all">Reset Current</button>
       </footer>
+
+      <dialog id="history-dialog">
+        <div class="dialog-content">
+          <h2>Session History</h2>
+          <div id="history-list">
+            <!-- history items will be injected here -->
+          </div>
+          <div class="dialog-actions">
+            <button id="close-history">Close</button>
+            <button id="clear-history" class="danger">Clear All History</button>
+          </div>
+        </div>
+      </dialog>
 
       <dialog id="reset-dialog">
         <form method="dialog">
